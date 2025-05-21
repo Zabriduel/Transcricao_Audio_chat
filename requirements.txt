@@ -3,4 +3,4 @@ SpeechRecognition
 pydub
 google-generativeai
 python-dotenv
-# openai-whisper
+openai-whisper
