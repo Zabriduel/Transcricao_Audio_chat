@@ -1,0 +1,81 @@
+import streamlit as st
+import whisper
+import google.generativeai as genai
+import os
+from dotenv import load_dotenv, find_dotenv
+
+# 🔧 Caminho local do ffmpeg (ajuste conforme necessário)
+ffmpeg_path = os.path.join(os.path.dirname(__file__), "ffmpeg-7.1.1-essentials_build", "bin")
+os.environ["PATH"] += os.pathsep + ffmpeg_path
+
+# Carrega variáveis de ambiente
+_ = load_dotenv(find_dotenv())
+
+# Chave da API do Gemini
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+if not GOOGLE_API_KEY:
+    st.error("A chave da API do Gemini não foi encontrada. Configure a variável de ambiente GOOGLE_API_KEY.")
+    st.stop()
+
+# Configura o Gemini
+genai.configure(api_key=GOOGLE_API_KEY)
+
+# Função de transcrição com Whisper
+def transcribe_with_whisper(uploaded_file):
+    try:
+        with open("temp_audio.mp3", "wb") as f:
+            f.write(uploaded_file.read())
+
+        model = whisper.load_model("base")
+        result = model.transcribe("temp_audio.mp3", language="pt")
+        os.remove("temp_audio.mp3")
+
+        return result["text"]
+    except Exception as e:
+        st.error(f"Erro durante a transcrição com Whisper: {e}")
+        return None
+
+# Função de tradução com Gemini 1.5 Flash
+def translate_text_gemini(text, target_language="en"):
+    try:
+        model = genai.GenerativeModel(model_name="models/gemini-1.5-flash-latest")
+        prompt = f"Translate the following Portuguese text to {target_language}:\n\n{text}"
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        st.error(f"Erro durante a tradução com Gemini: {e}")
+        return None
+
+# Interface principal
+def main():
+    st.header("🎙️ Transcrição (.mp3) com Whisper + Tradução com Gemini 1.5 Flash")
+
+    uploaded_file = st.file_uploader("Carregue um arquivo de áudio MP3 ou WAV", type=["mp3", "wav"])
+
+    if uploaded_file is not None:
+        st.audio(uploaded_file, format="audio/mp3")
+
+        transcription = transcribe_with_whisper(uploaded_file)
+
+        if transcription:
+            st.subheader("📝 Transcrição:")
+            st.write(transcription)
+
+            target_language = st.selectbox(
+                "🌐 Selecione o idioma para tradução:",
+                ["en", "es", "fr", "de", "it"]
+            )
+
+            translation = translate_text_gemini(transcription, target_language)
+
+            if translation:
+                st.subheader(f"🌍 Tradução para {target_language}:")
+                st.write(translation)
+            else:
+                st.error("❌ Falha na tradução.")
+        else:
+            st.error("❌ Falha na transcrição do áudio.")
+
+if __name__ == "__main__":
+    main()
