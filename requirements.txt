@@ -1,0 +1,7 @@
+streamlit
+SpeechRecognition
+pydub
+google-generativeai
+python-dotenv
+openai-whisper
+imageio-ffmpeg
