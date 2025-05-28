@@ -48,7 +48,7 @@ def set_custom_background(image_file_path):
 def transcribe_with_gemini(uploaded_audio):
     try:
         st.info("📥 Processando transcrição com Gemini...")
-        model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest")
+        model = genai.GenerativeModel(model_name="models/gemini-1.5-flash")
 
         progress = st.progress(0)
 
@@ -85,7 +85,7 @@ def transcribe_with_gemini(uploaded_audio):
 # 🌍 Tradução com Gemini
 def translate_text_gemini(text, target_language):
     try:
-        model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest")
+        model = genai.GenerativeModel(model_name="models/gemini-1.5-flash")
         progress_bar = st.progress(0)
 
         prompt = f"Translate the following English text to {target_language}:\n{text}"
